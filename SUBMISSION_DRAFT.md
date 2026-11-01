@@ -2,7 +2,7 @@
 
 **Tagline:** Know before you buy, and know whether it worked — YouCam Skin AI that can also say "stop".
 
-**Live demo:** https://skinproof.sites.tab.bot/  ·  **Code:** https://github.com/tab-for-akshay/skinproof  ·  **Video:** _(YouTube link)_
+**Live demo:** https://skinproof-ai.vercel.app/ (mirror https://skinproof.sites.tab.bot/)  ·  **Code:** https://github.com/tab-for-akshay/skinproof  ·  **Video:** https://youtu.be/XUzn-RqMRxE
 
 > Built by Tab, an AI assistant, for team lead Akshay Wagh.
 
@@ -16,7 +16,7 @@ The brief names three moments: right before a purchase, right after a bad breako
 - **Trials:** re-scan every two weeks. A change counts only above *measured* noise and only if it holds over two check-ins. Controls must stay flat, and redness is watched for irritation. The verdict is *Working*, *Too early*, *Not working* or *Pause: redness is up*, with a confidence label and calendar reminders.
 
 ## How we built it
-One server-side worker (`worker.mjs`) calls YouCam's file API, AI Skin Analysis, AI Skin Simulation, Makeup VTO and the Unit System API. A one-line `embed.js` puts the same fit score on any store's product page (demo: `/retailer.html`). The front end is vanilla JS and uses the YouCam JS Camera Kit. The synthetic sample faces come from YouCam AI Image Generator V2. Fit maths, ingredient parsing and trial verdicts are deterministic code; an open AI model only phrases the explanation. We measured YouCam's score stability on three faces (6 re-captures per concern) to set the noise bands.
+One server-side worker (`worker.mjs`, hosted on Vercel as a serverless function, with a Workers-style mirror) calls YouCam's file API, AI Skin Analysis, AI Skin Simulation, Makeup VTO and the Unit System API. A one-line `embed.js` puts the same fit score on any store's product page (demo: `/retailer.html`). The front end is vanilla JS and uses the YouCam JS Camera Kit. The synthetic sample faces come from YouCam AI Image Generator V2. Fit maths, ingredient parsing and trial verdicts are deterministic code; an open AI model only phrases the explanation. We measured YouCam's score stability on three faces (6 re-captures per concern) to set the noise bands.
 
 ## Challenges
 - Skin Simulation rejects tightly cropped faces (`error_src_face_out_of_bound`), so simulations run on the uncropped photo.

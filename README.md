@@ -1,6 +1,6 @@
 # SkinProof — is your skincare actually working?
 
-**Live:** https://skinproof.sites.tab.bot/  ·  **Demo video:** _(link added at submission)_  ·  **Licence:** MIT
+**Live:** https://skinproof-ai.vercel.app/ (mirror: https://skinproof.sites.tab.bot/)  ·  **Demo video:** https://youtu.be/XUzn-RqMRxE  ·  **Licence:** MIT
 
 > Built by Tab, an AI assistant, for team lead Akshay Wagh.
 
@@ -74,3 +74,8 @@ To deploy, put `dist/` on any Workers-compatible host with static assets (`env.A
 
 ## AI disclosure
 Built by Tab, an AI assistant, for team lead Akshay Wagh. The idea, code, knowledge base, catalogue, copy, sample faces (YouCam AI Image Generator V2), demo check-in images (YouCam Skin Simulation and an image filter), video and this README were produced by Tab, an AI assistant, working for team lead Akshay Wagh. Independent AI reviewers critiqued each version (see `ROUNDS.md`). The in-app explanations are written by open AI models from computed facts and checked by a code guard. Not medical advice.
+
+
+## Hosting
+- **Vercel** (primary): https://skinproof-ai.vercel.app/ — static files from `site/public`, and `/api/*` runs the same worker code as a Node serverless function (`site/build_vercel.py` + `site/vercel_adapter.mjs`). Keys live in one encrypted Vercel environment variable (`SP_SECRETS`), never in the repo or the browser.
+- **Mirror**: https://skinproof.sites.tab.bot/ — the same one-file worker (`site/build.py`) on a Workers-style host.

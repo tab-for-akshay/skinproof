@@ -98,7 +98,8 @@
    "category": "Acne treatment (OTC retinoid)",
    "ingredients": "Adapalene (0.1%) InCarbomer 934P, Macrogol 20, Methyl Glucose Sesquistearate, Glycerol (E422), Natural, Squalane, Methyl Parahydroxybenzoate (E218), Propyl Parahydroxybenzoate (E216), Disodium Edetate, Methyl Glucose Sesquistearate, Phenoxyethanol, Cyclomethicone, Sodium Hydroxide, Purified Water",
    "source": "https://incidecoder.com/products/differin-adapalene-gel",
-   "shop": "https://www.google.com/search?tbm=shop&q=Differin+Adapalene+Gel"
+   "shop": "https://www.google.com/search?tbm=shop&q=Differin+Adapalene+Gel",
+   "brand_url": "https://differin.com/shop/differin-gel/3029949.html"
   },
   {
    "id": "la-roche-posay-cicaplast-baume-b5",
@@ -142,7 +143,7 @@
   },
   {
    "id": "kiehl-s-ultra-facial-cream",
-   "brand": "Kiehl\u2019s",
+   "brand": "Kiehl’s",
    "name": "Ultra Facial Cream",
    "category": "Moisturiser",
    "ingredients": "Aqua/Water, Glycerin, Dimethicone, Squalane, Bis-PEG-18 Methyl Ether Dimethyl Silane, Sucrose Stearate, Stearyl Alcohol, PEG-8 Stearate, Myristyl Myristate, Prunus Armeniaca Kernel Oil / Apricot Kernel Oil, Phenoxyethanol, Persea Gratissima Oil/Avocado Oil, Glyceryl Stearate, Cetyl Alcohol, Oryza Sativa Bran Oil / Rice Bran Oil, Olea Europaea Fruit Oil/Olive Fruit Oil, Chlorphenesin, Stearic Acid, Palmitic Acid, Carbomer, Acrylates/C10-30 Alkyl Acrylate Crosspolymer, Trisodium Ethylenediamine Disuccinate, Prunus Amygdalus Dulcis Oil / Sweet Almond Oil, Xanthan Gum, Ethylhexylglycerin, Sodium Hydroxide, Tocopherol, Glycine Soja Oil / Soybean Oil, Pseudoalteromonas Ferment Extract, Myristic Acid, Hydroxypalmitoyl Sphinganine, Salicylic Acid, Helianthus Annuus Seed Oil/Sunflower Seed Oil, Rosmarinus Officinalis Leaf Extract/Rosemary Leaf Extract, Citric Acid",
@@ -248,7 +249,8 @@
    "ingredients": "Titanium Dioxide (5.5%), Zinc Oxide (10%) InWater, C12-15 Alkyl Benzoate, Isohexadecane, Isononyl Isononanoate, Dicaprylyl Ether, PEG-30 Dipolyhydroxystearate, Triethylhexanoin, Polyglyceryl-4 Isostearate, Dicaprylyl Carbonate, Ethylene/Acrylic Acid Copolymer, Triethanolamine, Silica, Poly C10-30 Alkyl Acrylate, Stearic Acid, Ceramide NP, Ceramide AP, Ceramide EOP, Carbomer, Niacinamide, Cetearyl Alcohol, Triethoxycaprylylsilane, Behentrimonium Methosulfate, Sodium Chloride, Salicylic Acid, Sodium Hyaluronate, Sodium Lauroyl Lactylate, Cholesterol, Aluminum Stearate, Alumina, Aluminum Hydroxide, Iron Oxides, Phenoxyethanol, P-Anisic Acid, Chlorphenesin, Tocopherol, Disodium EDTA, Disodium Stearoyl Glutamate, Propylene Carbonate, Citric Acid, Caprylyl Glycol, Capryloyl Salicylic Acid, Caprylic/Capric Triglyceride, Diethylhexyl Syringylidenemalonate, Disteardimonium Hectorite, Xanthan Gum, Phytosphingosine, Polyhydroxystearic Acid, Ethylhexylglycerin",
    "source": "https://incidecoder.com/products/cerave-hydrating-sunscreen-broad-spectrum-spf-30-face-sheer-tinted",
    "shop": "https://www.google.com/search?tbm=shop&q=CeraVe+Hydrating+Sunscreen+Broad+Spectrum+Spf+30+Face+Sheer+Tinted",
-   "tinted": true
+   "tinted": true,
+   "brand_url": "https://www.cerave.com/sunscreen/face/hydrating-mineral-sunscreen-spf-30-face-sheer-tint-light"
   }
  ]
 }

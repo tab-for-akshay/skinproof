@@ -129,7 +129,7 @@ async function runVTO(out, label) {
     const r = await fetch("/api/vto?cover=75", { method: "POST", headers: { "content-type": "image/jpeg" }, body: blob });
     const j = await r.json(); if (!r.ok) { out.innerHTML = `<p class="status err">${esc(j.error)}</p>`; return; }
     for (let i = 0; i < 40; i++) { await sleep(2000); const p = await (await fetch(`/api/vto/${encodeURIComponent(j.task_id)}`)).json();
-      if (p.status === "success") { out.innerHTML = baSlider(url, p.url, "With sheer tint (try-on)", "Now") + `<p class="small muted">YouCam Makeup VTO, light skin-tone evening at 75%. ${label ? esc(label) + ": " : ""}a finish preview, not shade matching.</p>`; wireBA(out); return; }
+      if (p.status === "success") { out.innerHTML = baSlider(url, p.url, "With sheer tint (try-on)", "Now") + `<p class="small muted">YouCam Makeup VTO, light skin-tone evening at 75%${label ? " (" + esc(label) + ")" : ""}. A finish preview, not shade matching.</p>`; wireBA(out); return; }
       if (p.status === "error") { out.innerHTML = `<p class="status err">${esc(p.error)}</p>`; return; } }
     out.innerHTML = "<p class='status err'>The try-on took too long. Try again.</p>";
   } catch (e) { out.innerHTML = `<p class="status err">${esc(e.message)}</p>`; }
@@ -157,7 +157,7 @@ function renderShop() {
   $("#shopList").innerHTML = list.map(p => { const g = p.fit >= 65 ? "g-good" : p.fit >= 45 ? "g-mid" : "g-bad";
     return `<div class="prod"><div class="prod-top"><div class="fitbadge ${g}" title="Fit for your skin, out of 100">${p.fit}</div><div><div class="small muted">#${p.rank} · ${esc(p.brand)} · ${esc(p.category)}</div><b>${esc(p.name)}</b></div></div>
     <div class="small">${p.hits.length ? [...new Map(p.hits.map(h => [h.concern, h])).values()].map(h => `<span class="chip t">${esc(h.concern)} · ${esc(h.active.split(" (")[0])}</span>`).join(" ") : "<span class='muted'>Targets none of your priorities</span>"}</div>
-    ${p.cautions.length ? `<div class="small warnline">⚠ ${p.cautions.map(esc).join("; ")}</div>` : `<div class="small okline">No cautions for your skin</div>`}
+    ${p.cautions.length ? `<div class="small warnline">⚠ ${groupCautions(p.cautions).map(esc).join("; ")}</div>` : `<div class="small okline">No cautions for your skin</div>`}
     <div class="row"><button class="btn small-btn" data-why="${esc(p.id)}">Why ${p.fit}?</button>${p.tinted ? `<button class="btn small-btn" data-try="${esc(p.id)}">👁 Try it on</button>` : ""}${p.brand_url ? `<a class="btn ghost small-btn" href="${esc(p.brand_url)}" target="_blank" rel="noopener">Brand site ↗</a>` : ""}<a class="btn ghost small-btn" href="${esc(p.shop)}" target="_blank" rel="noopener">Compare prices ↗</a></div><div class="tryout"></div></div>`; }).join("") || "<p class='muted'>Nothing in this filter.</p>";
   $$("#shop [data-why]").forEach(b => b.onclick = () => { const p = SHOP.products.find(x => x.id === b.dataset.why); $("#pName").value = p.brand + " " + p.name; $("#pIng").value = p.ingredients; $("#check").scrollIntoView({ behavior: "smooth" }); runCheck(); });
   $$("#shop [data-try]").forEach(b => b.onclick = () => { const p = SHOP.products.find(x => x.id === b.dataset.try); runVTO(b.closest(".prod").querySelector(".tryout"), p.brand + " " + p.name); });
@@ -239,7 +239,7 @@ function startTrial(j) {
 function ics(tr) {
   const d0 = new Date(tr.start + "T09:00:00"), ev = [], pad = n => String(n).padStart(2, "0"), f = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T090000`;
   if (tr.patch) ev.push(`BEGIN:VEVENT\r\nUID:skinproof-${tr.id}-patch@skinproof.sites.tab.bot\r\nDTSTAMP:${f(new Date())}\r\nDTSTART:${f(new Date(d0.getTime() + 2 * 864e5))}\r\nDURATION:PT5M\r\nSUMMARY:SkinProof: check your patch test (${tr.product.replace(/[,;\\]/g, " ")})\r\nDESCRIPTION:48 hours after applying a little on the jawline or inner arm: any redness, itching or stinging? If yes, don't start the trial.\r\nEND:VEVENT`);
-  for (let w = 2; w <= tr.weeks; w += 2) { const d = new Date(d0.getTime() + w * 7 * 864e5); ev.push(`BEGIN:VEVENT\r\nUID:skinproof-${tr.id}-${w}@skinproof.sites.tab.bot\r\nDTSTAMP:${f(new Date())}\r\nDTSTART:${f(d)}\r\nDURATION:PT10M\r\nSUMMARY:SkinProof check-in (week ${w}): ${tr.product.replace(/[,;\\]/g, " ")}\r\nDESCRIPTION:Re-scan at https://skinproof.sites.tab.bot/#trials — ${CHECKLIST}\r\nEND:VEVENT`); }
+  for (let w = 2; w <= tr.weeks; w += 2) { const d = new Date(d0.getTime() + w * 7 * 864e5); ev.push(`BEGIN:VEVENT\r\nUID:skinproof-${tr.id}-${w}@skinproof.sites.tab.bot\r\nDTSTAMP:${f(new Date())}\r\nDTSTART:${f(d)}\r\nDURATION:PT10M\r\nSUMMARY:SkinProof check-in (week ${w}): ${tr.product.replace(/[,;\\]/g, " ")}\r\nDESCRIPTION:Re-scan at ${location.origin}/#trials — ${CHECKLIST}\r\nEND:VEVENT`); }
   const blob = new Blob([`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SkinProof//EN\r\n${ev.join("\r\n")}\r\nEND:VCALENDAR\r\n`], { type: "text/calendar" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "skinproof-checkins.ics"; a.click();
 }
@@ -313,6 +313,8 @@ async function renderTrials() {
   $$("#trialList [data-del]").forEach(b => b.onclick = () => { store.set("sp_trials", store.get("sp_trials", []).filter(x => x.id !== +b.dataset.del)); renderTrials(); });
 }
 
+// "Salicylic acid (BHA) — redness", "Salicylic acid (BHA) — moisture" -> "Salicylic acid (BHA) — redness, moisture"
+function groupCautions(list) { const m = new Map(); for (const c of list) { const i = c.indexOf(" — "); const k = i < 0 ? c : c.slice(0, i), v = i < 0 ? "" : c.slice(i + 3); if (!m.has(k)) m.set(k, []); if (v && !m.get(k).includes(v)) m.get(k).push(v); } return [...m].map(([k, v]) => v.length ? k + " — " + v.join(", ") : k); }
 // ---------- 90-second tour (for judges) ----------
 async function tour() {
   const say = t => { $("#tourNote").textContent = t; $("#tourNote").classList.remove("hidden"); };
