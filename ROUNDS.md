@@ -15,3 +15,16 @@ Top 3 changes taken into v2:
 1. **The eCommerce half.** All three said there was no store. v2 adds a "Shop what fits" catalogue of real products with their real INCI lists, each ranked against your scan and linking to where to buy it.
 2. **Show the system saying no, and show the maths.** v2 adds a second demo trial that ends "Pause: redness is up", control (untargeted) concerns in every trial, the fit-score arithmetic, knowledge-base coverage ("x of y ingredients recognised"), and INCI position used as a rough concentration proxy. The noise band is now measured on three faces, not one.
 3. **Never show plumbing; make the loop close.** v2 removes model names and error codes from the UI and falls back calmly; "Start a trial" adds a calendar reminder (.ics); there is a public repo; chart labels, a checkbox and a grammar slip are fixed; the ingredient parser copes with pasted shop text.
+
+## Round 2: v2 reviewed (1 Nov 2026, ~20:31–20:35 UTC)
+Reviewers:
+- **Fo** opened the live site and ran the whole flow again. Scores: Implementation 8 · Design 7 · Impact 6 · Idea 9. In Fo's words: "The best idea I've seen in this brief."
+- **Gemini 3.5 Flash-Lite** (text plus v2 screenshots). Scores: 9 · 8 · 9 · 9.
+- **Arden** (Skydive) read the live site and the repo. Scores: 9 · 7 · 6 · 8. Arden's words: "the trials engine actually says 'stop'", but "no video, no AR try-on … and all demo evidence is synthetic".
+
+Top 3 changes taken into v3:
+1. **VTO and real commerce.** v3 adds a **YouCam Makeup VTO** try-on: on tinted products, and as "cover it today" after a breakout. It adds direct **brand-site links** for 22 of the 25 products, next to a price-comparison link. There is also a **retailer widget** (one script tag) shown on a mock store product page.
+2. **The demo explains itself.** The shop is pre-ranked for a sample face, so there is no empty "scan first" wall. A callout shows the "best all-rounder vs strongest for each of your concerns", and each check opens with "#k of 25 for you". The scan card has YouCam mask thumbnails, and each trial shows the YouCam mask at the first and latest check-in. There is a 90-second guided tour button for judges.
+3. **Honest wording and the breakout moment.** Redness is now worded "score dropped … lower = redder skin". The simulated demo trial is labelled "not an expected result". Eye-area concerns are kept out of skincare priorities. A breakout scan opens an "after a breakout" panel (do / pause / gentle picks / cover it today). Trials add patch-test reminders and a printable summary for a dermatologist.
+
+Not done, on purpose: a trial on a real person's face. The demo deliberately uses no real person's face; a consented real-user pilot is the first roadmap item.

@@ -3,6 +3,8 @@ const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAl
 const LABELS = { wrinkle:"Wrinkles", droopy_upper_eyelid:"Upper eyelid", droopy_lower_eyelid:"Lower eyelid", firmness:"Firmness", acne:"Acne", moisture:"Moisture", eye_bag:"Eye bags", dark_circle_v2:"Dark circles", age_spot:"Spots", radiance:"Radiance", redness:"Redness", oiliness:"Oiliness", pore:"Pores", texture:"Texture", tear_trough:"Tear trough" };
 const COLORS = ["#16767d","#c2410c","#7c3aed","#c27c0e","#1f8a5b","#be185d"];
 let NOISE = {}, SAMPLES = null, cur = null, lastCheck = null;
+const EYE = ["dark_circle_v2", "eye_bag", "tear_trough", "droopy_upper_eyelid", "droopy_lower_eyelid"];
+
 const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } }, set(k, v) { localStorage.setItem(k, JSON.stringify(v)); } };
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -58,7 +60,7 @@ async function liveScan(blob, camkit) {
     status(st, "The analysis is taking unusually long. Please try again.", true);
   } catch (e) { status(st, e.message || String(e), true); }
 }
-function saveLast(res) { store.set("sp_last", { date: new Date().toISOString().slice(0, 10), scores: scoresOf(res), overall: res.overall, skin_type: res.skin_type?.whole?.type || null, label: res.label }); updateCheckFor(); loadShop(); }
+function saveLast(res, key) { store.set("sp_last", { date: new Date().toISOString().slice(0, 10), scores: scoresOf(res), overall: res.overall, skin_type: res.skin_type?.whole?.type || null, label: res.label, key: key || null }); updateCheckFor(); loadShop(); }
 function render(res) {
   $("#result").classList.remove("hidden");
   const photo = $("#resPhoto"); photo.src = res.photo; photo.dataset.base = res.photo;
@@ -68,15 +70,23 @@ function render(res) {
   $("#skinAge").textContent = res.skin_age ?? "–";
   $("#skinType").textContent = res.skin_type?.whole?.type ?? (mode() === "breakout" ? "n/a (breakout check)" : "–");
   $("#zones").textContent = res.skin_type?.t_zone ? `${res.skin_type.t_zone.type} / ${res.skin_type.u_zone?.type ?? "–"}` : "–";
-  const pri = res.concerns.filter(c => c.ui < 75).slice(0, 3);
-  $("#prio").innerHTML = (pri.length ? "<span class='small muted'>Your priorities:</span> " + pri.map(c => `<span class="chip">${esc(c.label)} ${c.ui}</span>`).join(" ") : "<span class='chip ok'>No concern below 75 — maintenance mode</span>");
+  const pri = res.concerns.filter(c => c.ui < 75 && !EYE.includes(c.type)).slice(0, 3), eyeLow = res.concerns.filter(c => c.ui < 70 && EYE.includes(c.type));
+  $("#prio").innerHTML = (pri.length ? "<span class='small muted'>Your priorities:</span> " + pri.map(c => `<span class="chip">${esc(c.label)} ${c.ui}</span>`).join(" ") : "<span class='chip ok'>No concern below 75 — maintenance mode</span>") + (eyeLow.length ? ` <span class="small muted" title="Eye-area concerns only count when you check an eye product.">· eye area: ${eyeLow.map(c => `${esc(c.label)} ${c.ui}`).join(", ")}</span>` : "");
+  const masks = res.concerns.filter(c => c.mask && !EYE.includes(c.type)).slice(0, 4);
+  $("#maskRow").innerHTML = masks.length ? `<div class="small muted">Where YouCam sees it (tap to enlarge):</div><div class="thumbs">${masks.map(c => `<figure><img src="${esc(c.mask)}" alt="${esc(c.label)} overlay" data-mask="${esc(c.type)}"><figcaption>${esc(c.label)} ${c.ui}</figcaption></figure>`).join("")}</div>` : "";
+  $$("#maskRow img").forEach(im => im.onclick = () => { photo.src = im.src; $("#photoCap").textContent = im.alt; photo.scrollIntoView({ behavior: "smooth", block: "center" }); });
+  const acne = res.concerns.find(c => c.type === "acne"), red = res.concerns.find(c => c.type === "redness");
+  const flare = mode() === "breakout" || (acne && acne.ui < 72) || (red && red.ui < 70);
+  $("#breakout").classList.toggle("hidden", !flare);
+  if (flare) $("#breakout").innerHTML = `<h3>After a breakout: what to do this week</h3><div class="grid2"><div><b>Do</b><ul class="small"><li>Keep one gentle, fragrance-free cleanser and a light moisturiser.</li><li>Add <b>one</b> targeted active (salicylic acid, benzoyl peroxide, azelaic acid or adapalene) — not all of them.</li><li>Use sunscreen every morning; marks fade faster.</li></ul></div><div><b>Pause</b><ul class="small"><li>Scrubs, strong acid peels and new retinoids while the skin is ${red && red.ui < 75 ? "this red" : "inflamed"}.</li><li>Fragrance and essential oils on red patches.</li><li>Picking — it doubles the time marks last.</li></ul></div></div><div class="row"><button class="btn primary small-btn" id="gentleBtn">Show gentle picks that fit</button><button class="btn small-btn" id="coverBtn">👁 Cover it today: try a sheer tint on this photo</button></div><div id="coverOut"></div><p class="small muted">Not medical advice. Painful cysts, or acne that is scarring, needs a dermatologist.</p>`;
+  if (flare) { $("#gentleBtn").onclick = () => { SHOPCAT = "Gentle"; renderShop(); $("#shop").scrollIntoView({ behavior: "smooth" }); }; $("#coverBtn").onclick = () => runVTO($("#coverOut")); }
   $("#concerns").innerHTML = res.concerns.map((c, i) => `<button class="c" data-i="${i}"><div class="top2"><span>${esc(c.label)}</span><span style="color:${scoreColor(c.ui)}">${c.ui}<small class="muted" title="Measurement noise: re-photographing the same face moved this score by up to ${c.noise - 1} points, so changes smaller than ±${c.noise} are ignored in trials."> ±${c.noise}</small></span></div><div class="bar2"><i style="width:${c.ui}%;background:${scoreColor(c.ui)}"></i></div></button>`).join("");
   $$("#concerns .c").forEach(b => b.onclick = () => { $$("#concerns .c").forEach(x => x.classList.remove("on")); b.classList.add("on"); const c = res.concerns[+b.dataset.i]; if (c.mask) { photo.src = c.mask; $("#photoCap").textContent = c.label + " — highlighted by YouCam"; } });
   $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 async function pickSample(key) {
   const st = $("#scanStatus"); status(st, "Loading sample scan (real YouCam results, cached)…");
-  const res = await loadSample(key); cur = { source: "sample", key, result: res }; saveLast(res); render(res); status(st, "");
+  const res = await loadSample(key); cur = { source: "sample", key, result: res }; saveLast(res, key); render(res); status(st, "");
 }
 function loadCamKit() {
   return new Promise((ok, bad) => {
@@ -107,28 +117,53 @@ async function openCam() {
   } catch (e) { status(st, e.message + " You can upload a photo instead.", true); }
 }
 
+async function currentPhotoBlob() {
+  if (cur?.source === "live" && cur.blob) return { blob: cur.blob, url: URL.createObjectURL(cur.blob) };
+  const key = (cur?.key || store.get("sp_last", {})?.key || "priya").split("_")[0], url = `/samples/${key}/full.jpg`;
+  return { blob: await (await fetch(url)).blob(), url };
+}
+async function runVTO(out, label) {
+  out.innerHTML = "<p class='status'>Trying a sheer, light-coverage finish on the photo with YouCam Makeup VTO…</p>";
+  try {
+    const { blob, url } = await currentPhotoBlob();
+    const r = await fetch("/api/vto?cover=75", { method: "POST", headers: { "content-type": "image/jpeg" }, body: blob });
+    const j = await r.json(); if (!r.ok) { out.innerHTML = `<p class="status err">${esc(j.error)}</p>`; return; }
+    for (let i = 0; i < 40; i++) { await sleep(2000); const p = await (await fetch(`/api/vto/${encodeURIComponent(j.task_id)}`)).json();
+      if (p.status === "success") { out.innerHTML = baSlider(url, p.url, "With sheer tint (try-on)", "Now") + `<p class="small muted">YouCam Makeup VTO, light skin-tone evening at 75%. ${label ? esc(label) + ": " : ""}a finish preview, not shade matching.</p>`; wireBA(out); return; }
+      if (p.status === "error") { out.innerHTML = `<p class="status err">${esc(p.error)}</p>`; return; } }
+    out.innerHTML = "<p class='status err'>The try-on took too long. Try again.</p>";
+  } catch (e) { out.innerHTML = `<p class="status err">${esc(e.message)}</p>`; }
+}
+function baSlider(before, after, la, lb) { return `<div class="ba"><img src="${esc(before)}" alt="before"><div class="after"><img src="${esc(after)}" alt="after"></div><span class="lbl" style="left:8px">${esc(la)}</span><span class="lbl" style="right:8px">${esc(lb)}</span><input type="range" min="0" max="100" value="50" aria-label="Compare"></div>`; }
+function wireBA(root) { const ba = root.querySelector(".ba"); if (!ba) return; const af = ba.querySelector(".after"), ai = af.querySelector("img"); const fit = () => ai.style.width = ba.clientWidth + "px"; ai.onload = fit; fit(); addEventListener("resize", fit); ba.querySelector("input").oninput = e => af.style.width = e.target.value + "%"; }
+
 // ---------- shop ----------
 let SHOP = null, SHOPCAT = "All";
 async function loadShop() {
   const l = store.get("sp_last", null); if (!l) return;
-  $("#shopFor").innerHTML = `Ranked for: <b>${esc(l.label || "your scan")}</b> — ${topThree(l.scores)}`;
+  $("#shopFor").innerHTML = `Ranked for: <b>${esc(l.label || "your scan")}</b> — ${topThree(l.scores)}${l.auto ? ` <span class="muted">(sample shown until you scan — <a href="#scan">scan to get yours</a>)</span>` : ""}`;
   try { const r = await fetch("/api/shop", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ scores: l.scores }) }); SHOP = await r.json(); renderShop(); } catch (e) { $("#shopList").innerHTML = "<p class='status err'>Couldn't load the catalogue. Try again.</p>"; }
 }
 function renderShop() {
   if (!SHOP) return;
-  const cats = ["All", ...new Set(SHOP.products.map(p => p.category.split(" (")[0]))];
-  $("#shopFilters").innerHTML = cats.map(c => `<button class="chipbtn ${c === SHOPCAT ? "on" : ""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+  const l = store.get("sp_last", null);
+  const cats = ["All", "Gentle", ...new Set(SHOP.products.map(p => p.category.split(" (")[0]))];
+  $("#shopFilters").innerHTML = cats.map(c => `<button class="chipbtn ${c === SHOPCAT ? "on" : ""}" data-c="${esc(c)}">${c === "Gentle" ? "Gentle (no cautions for you)" : esc(c)}</button>`).join("");
   $$("#shopFilters .chipbtn").forEach(b => b.onclick = () => { SHOPCAT = b.dataset.c; renderShop(); });
-  const list = SHOP.products.filter(p => SHOPCAT === "All" || p.category.startsWith(SHOPCAT)).slice(0, SHOPCAT === "All" ? 9 : 30);
+  const gentle = p => !p.cautions.length && p.hits.length;
+  const list = SHOP.products.filter(p => SHOPCAT === "All" || (SHOPCAT === "Gentle" ? gentle(p) : p.category.startsWith(SHOPCAT))).slice(0, SHOPCAT === "All" ? 9 : 30);
+  const best = SHOP.products[0];
+  $("#shopStrong").innerHTML = SHOPCAT === "All" && best ? `<div class="callout"><div><b>Best all-rounder for you:</b> ${esc(best.brand)} ${esc(best.name)} (fit ${best.fit}). <button class="linkbtn" data-why="${esc(best.id)}">Why</button></div>${(SHOP.strongest || []).map(s => { const p = SHOP.products.find(x => x.id === s.id); return `<div><b>Strongest for ${esc(s.concern)}:</b> ${esc(p.brand)} ${esc(p.name)} — ${esc((s.active || "").split(" (")[0])} · #${p.rank} overall${p.cautions.length ? ` (held back by ${esc([...new Set(p.cautions.map(c => c.split(" — ")[0].split(" (")[0]))].join(", "))} cautions for your skin)` : ""}. <button class="linkbtn" data-why="${esc(p.id)}">Why</button></div>`; }).join("")}</div>` : "";
   $("#shopList").innerHTML = list.map(p => { const g = p.fit >= 65 ? "g-good" : p.fit >= 45 ? "g-mid" : "g-bad";
-    return `<div class="prod"><div class="prod-top"><div class="fitbadge ${g}">${p.fit}</div><div><div class="small muted">${esc(p.brand)} · ${esc(p.category)}</div><b>${esc(p.name)}</b></div></div>
+    return `<div class="prod"><div class="prod-top"><div class="fitbadge ${g}" title="Fit for your skin, out of 100">${p.fit}</div><div><div class="small muted">#${p.rank} · ${esc(p.brand)} · ${esc(p.category)}</div><b>${esc(p.name)}</b></div></div>
     <div class="small">${p.hits.length ? [...new Map(p.hits.map(h => [h.concern, h])).values()].map(h => `<span class="chip t">${esc(h.concern)} · ${esc(h.active.split(" (")[0])}</span>`).join(" ") : "<span class='muted'>Targets none of your priorities</span>"}</div>
     ${p.cautions.length ? `<div class="small warnline">⚠ ${p.cautions.map(esc).join("; ")}</div>` : `<div class="small okline">No cautions for your skin</div>`}
-    <div class="row"><button class="btn small-btn" data-why="${esc(p.id)}">Why ${p.fit}?</button><a class="btn ghost small-btn" href="${esc(p.shop)}" target="_blank" rel="noopener">Where to buy ↗</a></div></div>`; }).join("");
-  $$("#shopList [data-why]").forEach(b => b.onclick = () => { const p = SHOP.products.find(x => x.id === b.dataset.why); $("#pName").value = p.brand + " " + p.name; $("#pIng").value = p.ingredients; location.hash = "#check"; runCheck(); });
-  $("#shopNote").innerHTML = esc(SHOP.note) + " Ingredient lists: INCIDecoder (linked on each check).";
+    <div class="row"><button class="btn small-btn" data-why="${esc(p.id)}">Why ${p.fit}?</button>${p.tinted ? `<button class="btn small-btn" data-try="${esc(p.id)}">👁 Try it on</button>` : ""}${p.brand_url ? `<a class="btn ghost small-btn" href="${esc(p.brand_url)}" target="_blank" rel="noopener">Brand site ↗</a>` : ""}<a class="btn ghost small-btn" href="${esc(p.shop)}" target="_blank" rel="noopener">Compare prices ↗</a></div><div class="tryout"></div></div>`; }).join("") || "<p class='muted'>Nothing in this filter.</p>";
+  $$("#shop [data-why]").forEach(b => b.onclick = () => { const p = SHOP.products.find(x => x.id === b.dataset.why); $("#pName").value = p.brand + " " + p.name; $("#pIng").value = p.ingredients; $("#check").scrollIntoView({ behavior: "smooth" }); runCheck(); });
+  $$("#shop [data-try]").forEach(b => b.onclick = () => { const p = SHOP.products.find(x => x.id === b.dataset.try); runVTO(b.closest(".prod").querySelector(".tryout"), p.brand + " " + p.name); });
+  $("#shopNote").innerHTML = esc(SHOP.note);
 }
-function topThree(scores) { const eye = ["dark_circle_v2", "eye_bag", "tear_trough", "droopy_upper_eyelid", "droopy_lower_eyelid"]; return "priorities " + Object.entries(scores).filter(([k]) => !eye.includes(k)).sort((a, b) => a[1] - b[1]).slice(0, 3).map(([k, v]) => `${LABELS[k]} ${v}`).join(", "); }
+function topThree(scores) { const eye = EYE; return "priorities " + Object.entries(scores).filter(([k]) => !eye.includes(k)).sort((a, b) => a[1] - b[1]).slice(0, 3).map(([k, v]) => `${LABELS[k]} ${v}`).join(", "); }
 
 // ---------- product check ----------
 const EX = [
@@ -156,17 +191,18 @@ function renderCheck(j) {
   const g = j.fit >= 65 ? "g-good" : j.fit >= 45 ? "g-mid" : "g-bad", ex = j.explanation || {}, bd = j.breakdown || {}, cov = j.coverage || {};
   const simKeys = Object.keys(j.simulate || {}), an = /^[8]|^1[18]$/.test(String(j.trial.weeks)) ? "an" : "a";
   const src = SHOP?.products?.find(p => (p.brand + " " + p.name) === j.product);
+  const rankLine = src ? `#${src.rank} of ${SHOP.products.length} in the catalogue for you. ` + (SHOP.strongest || []).map(s => s.id === src.id ? `Strongest in the catalogue for ${s.concern}.` : (() => { const p = SHOP.products.find(x => x.id === s.id); return `For ${s.concern}, ${p.brand} ${p.name} targets it harder (#${p.rank}).`; })()).join(" ") : "";
   $("#checkOut").innerHTML = `
   <div class="fit"><div><div class="gauge ${g}">${j.fit}<small>${esc(j.verdict)}</small></div>
     <table class="maths small"><tr><td>Starting point</td><td>${bd.base}</td></tr>${j.priorities.map(p => `<tr><td>${esc(p.label)} (${p.share}% weight)</td><td>+${p.points}<span class="muted">/${p.max_points}</span></td></tr>`).join("")}${bd.penalty ? `<tr><td>Cautions for your skin</td><td class="neg">−${bd.penalty}</td></tr>` : ""}<tr class="tot"><td>Fit</td><td>${j.fit}</td></tr></table></div>
-   <div><h3>${esc(ex.headline || j.verdict)}</h3>
+   <div><h3>${esc(ex.headline || j.verdict)}</h3>${rankLine ? `<p class="small pill-note">${esc(rankLine)}</p>` : ""}
     <div class="box"><h4>Your priorities vs. this formula</h4><table><tr><th>Concern</th><th>You</th><th>Best match in formula</th></tr>${j.priorities.map(p => `<tr><td>${esc(p.label)}</td><td>${p.ui}</td><td>${p.best ? `<span class="chip t">${esc(p.best.active)}</span> <span title="evidence strength">${"●".repeat(p.best.strength)}${"○".repeat(3 - p.best.strength)}</span> <span class="muted">${esc(p.best.dose || "")}</span>` : "<span class='muted'>nothing in this formula</span>"}</td></tr>`).join("")}</table>
     <p class="small muted">● evidence strength from the sourced knowledge base. Recognised ${cov.recognised} of ${cov.parsed} ingredients (the rest are bases, textures and preservatives we don't score)${cov.one_pct_line ? ` · ingredients after #${cov.one_pct_line} are probably under 1%` : ""}. Ingredient order is only a rough guide to amount.</p></div>
     ${ex.why?.length ? `<div class="box"><h4>Why</h4><ul>${ex.why.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
     ${(ex.watch_out?.length || j.cautions.length) ? `<div class="box"><h4>Watch out</h4><ul>${(ex.watch_out?.length ? ex.watch_out : j.cautions.map(c => `${c.active}: ${c.note}`)).map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
     ${ex.how_to_use?.length ? `<div class="box"><h4>How to use it</h4><ul>${ex.how_to_use.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
     <details class="box"><summary><b>Facts the explanation was written from (${j.matches.length} actives)</b></summary>${j.matches.map(m => `<div class="small"><b>${esc(m.name)}</b> <span class="muted">#${m.position}, ${esc(m.dose || "")} — ${esc(m.note)}</span> ${m.src.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join(" · ")}</div>`).join("") || "<p class='small muted'>No known actives from our list.</p>"}</details>
-    <p class="small muted">${esc(ex.brain || "")}${ex.guard?.checked ? (ex.guard.blocked?.length ? "" : " · Guard: no ingredient outside this formula was named.") : ""}${src ? ` · <a href="${esc(src.source)}" target="_blank" rel="noopener">Ingredient list source</a> · <a href="${esc(src.shop)}" target="_blank" rel="noopener">Where to buy ↗</a>` : ""}</p>
+    <p class="small">${src ? `<a href="${esc(src.brand_url || src.shop)}" target="_blank" rel="noopener">Where to buy ↗</a> · <a href="${esc(src.source)}" target="_blank" rel="noopener">Ingredient list source</a> · ` : ""}<details class="inline"><summary>How this was checked</summary><span class="muted">${esc(ex.brain || "")}${ex.guard?.checked ? (ex.guard.blocked?.length ? "" : " No ingredient outside this formula was named.") : ""} The fit score itself is plain arithmetic (left), never AI.</span></details></p>
     <div class="row">${simKeys.length ? `<button class="btn" id="simBtn">✨ Show a realistic target (YouCam Skin Simulation)</button>` : ""}<button class="btn primary" id="trialBtn">Start ${an} ${j.trial.weeks}-week trial</button></div>
     <div id="simOut"></div></div></div>`;
   $("#checkOut").classList.remove("hidden");
@@ -196,12 +232,13 @@ function controlsFor(track) { return CONTROL_POOL.filter(c => !track.includes(c)
 function startTrial(j) {
   const l = store.get("sp_last", null); if (!l) return;
   const t = store.get("sp_trials", []);
-  const tr = { id: Date.now(), product: j.product, start: l.date, track: j.trial.track, controls: controlsFor(j.trial.track), weeks: j.trial.weeks, checkins: [{ date: l.date, label: "Baseline", scores: l.scores }] };
+  const tr = { id: Date.now(), product: j.product, start: l.date, track: j.trial.track, controls: controlsFor(j.trial.track), weeks: j.trial.weeks, patch: (j.cautions || []).length > 0 || (j.flags || []).includes("irritant"), checkins: [{ date: l.date, label: "Baseline", scores: l.scores }] };
   t.unshift(tr); store.set("sp_trials", t); renderTrials();
   setTimeout(() => { $("#trials").scrollIntoView({ behavior: "smooth" }); const c = $(`[data-trialcard="${tr.id}"]`); if (c) { c.classList.add("flash"); } }, 50);
 }
 function ics(tr) {
   const d0 = new Date(tr.start + "T09:00:00"), ev = [], pad = n => String(n).padStart(2, "0"), f = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T090000`;
+  if (tr.patch) ev.push(`BEGIN:VEVENT\r\nUID:skinproof-${tr.id}-patch@skinproof.sites.tab.bot\r\nDTSTAMP:${f(new Date())}\r\nDTSTART:${f(new Date(d0.getTime() + 2 * 864e5))}\r\nDURATION:PT5M\r\nSUMMARY:SkinProof: check your patch test (${tr.product.replace(/[,;\\]/g, " ")})\r\nDESCRIPTION:48 hours after applying a little on the jawline or inner arm: any redness, itching or stinging? If yes, don't start the trial.\r\nEND:VEVENT`);
   for (let w = 2; w <= tr.weeks; w += 2) { const d = new Date(d0.getTime() + w * 7 * 864e5); ev.push(`BEGIN:VEVENT\r\nUID:skinproof-${tr.id}-${w}@skinproof.sites.tab.bot\r\nDTSTAMP:${f(new Date())}\r\nDTSTART:${f(d)}\r\nDURATION:PT10M\r\nSUMMARY:SkinProof check-in (week ${w}): ${tr.product.replace(/[,;\\]/g, " ")}\r\nDESCRIPTION:Re-scan at https://skinproof.sites.tab.bot/#trials — ${CHECKLIST}\r\nEND:VEVENT`); }
   const blob = new Blob([`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SkinProof//EN\r\n${ev.join("\r\n")}\r\nEND:VCALENDAR\r\n`], { type: "text/calendar" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "skinproof-checkins.ics"; a.click();
@@ -219,7 +256,7 @@ function verdict(tr) {
   const strong = imp.filter(r => r.d >= 2 * r.nz).length;
   let v, cls, why, conf = "";
   if (n < 2) { v = "Baseline saved"; cls = "v-wait"; why = `Next check-in in 2 weeks. ${CHECKLIST}.`; }
-  else if (redWorse) { v = "Pause it: redness is up"; cls = "v-bad"; why = `Redness fell ${-redWorse.d} points (noise ±${redWorse.nz}) — possible irritation. Stop for a week; see a dermatologist if it persists.`; conf = Math.abs(redWorse.d) >= 2 * redWorse.nz ? "high confidence" : "moderate confidence"; }
+  else if (redWorse) { v = "Pause it: redness is up"; cls = "v-bad"; why = `Redness score dropped ${-redWorse.d} points (lower = redder skin; noise ±${redWorse.nz}) — possible irritation. Stop for a week; see a dermatologist if it persists.`; conf = Math.abs(redWorse.d) >= 2 * redWorse.nz ? "high confidence" : "moderate confidence"; }
   else if (imp.length >= Math.ceil(rows.length / 2)) { v = "Working — keep it"; cls = "v-good"; why = `${imp.length} of ${rows.length} tracked concerns improved beyond noise on two check-ins in a row.`; conf = strong >= Math.ceil(rows.length / 2) ? "high confidence" : "moderate confidence"; }
   else if (days < tr.weeks * 7) { v = "Too early to call"; cls = "v-wait"; why = `${imp.length} confirmed and ${early.length} early signals out of ${rows.length}. Keep going to week ${tr.weeks}.`; }
   else { v = "Not working for you"; cls = "v-bad"; why = `After ${Math.round(days / 7)} weeks, fewer than half the tracked concerns improved beyond noise. Consider switching.`; conf = "moderate confidence"; }
@@ -249,15 +286,17 @@ function trialCard(tr, demo) {
   return `<div class="trial" data-trialcard="${tr.id || ""}"><div class="trial-head"><div><b>${esc(tr.product)}</b>${demo ? ` <span class="chip t">demo · ${esc(demo)}</span>` : ""}<div class="small muted">Started ${tr.start} · ${tr.weeks}-week trial · tracking ${tr.track.map(k => LABELS[k]).join(", ")}</div></div><div class="vbox"><div class="verdict ${v.cls}">${esc(v.v)}</div>${v.conf ? `<div class="small muted">${v.conf}</div>` : ""}<div class="small">${esc(v.why)}</div></div></div>
    ${tr.checkins.length > 2 ? `<div class="timeline small">${tr.checkins.slice(1).map((c, i) => { const vv = verdict({ ...tr, checkins: tr.checkins.slice(0, i + 2) }); return `<span class="tl ${vv.cls}">${esc(c.label)}: <b>${esc(vv.v)}</b></span>`; }).join("<span class='muted'>→</span>")}</div>` : ""}
    ${tr.checkins[0].photo ? `<div class="thumbs">${tr.checkins.map(c => `<figure><img src="${c.photo}" alt="${esc(c.label)} photo"><figcaption>${esc(c.label)}</figcaption></figure>`).join("")}</div>` : ""}
+   ${tr.note ? `<p class="small muted"><i>${esc(tr.note)}</i></p>` : ""}
    ${chart(tr)}
+   ${tr.samples ? (() => { const key = (v.rows.concat(v.extra).filter(r => r.kind !== "control").sort((x, y) => Math.abs(y.d) - Math.abs(x.d))[0] || {}).k; return key ? `<div class="small muted">YouCam mask for ${LABELS[key]}, first vs. latest check-in:</div><div class="thumbs"><figure><img src="/samples/${tr.samples[0]}/${key}.jpg" alt=""><figcaption>${esc(tr.checkins[0].label)} · ${tr.checkins[0].scores[key]}</figcaption></figure><figure><img src="/samples/${tr.samples.at(-1)}/${key}.jpg" alt=""><figcaption>${esc(tr.checkins.at(-1).label)} · ${tr.checkins.at(-1).scores[key]}</figcaption></figure></div>` : ""; })() : ""}
    <table><tr><th>Concern</th><th>Baseline</th><th>Latest</th><th>Change</th><th>Noise</th><th>Status</th></tr>${v.rows.map(r => trialRow(tr, r)).join("")}${v.extra.map(r => trialRow(tr, r)).join("")}</table>
-   ${demo ? "" : `<p class="small muted">Before each check-in: ${CHECKLIST}.</p><div class="row"><label class="btn primary"><input type="file" accept="image/jpeg,image/png" hidden data-trial="${tr.id}">📷 Add a check-in scan</label><button class="btn" data-ics="${tr.id}">📅 Add check-in reminders</button><button class="btn ghost" data-del="${tr.id}">Delete</button></div>`}</div>`;
+   ${demo ? "" : `${tr.patch && tr.checkins.length < 2 ? `<p class="small warnline">This formula has a caution for your skin: patch-test it for 48 hours (jawline or inner arm) before day 1. The reminders include a patch-test check.</p>` : ""}<p class="small muted">Before each check-in: ${CHECKLIST}.</p><div class="row"><label class="btn primary"><input type="file" accept="image/jpeg,image/png" hidden data-trial="${tr.id}">📷 Add a check-in scan</label><button class="btn" data-ics="${tr.id}">📅 Add check-in reminders</button><button class="btn ghost" data-print="${tr.id}">🖨 Summary for your dermatologist</button><button class="btn ghost" data-del="${tr.id}">Delete</button></div>`}${demo ? `<div class="row"><button class="btn ghost small-btn" data-printdemo>🖨 Print this trial summary</button></div>` : ""}</div>`;
 }
 let DEMOS = null;
 async function demoTrials() {
   if (DEMOS) return DEMOS; DEMOS = [];
   for (const d of SAMPLES.demo_trials) { const cis = []; for (const c of d.checkins) { const r = await loadSample(c.sample); cis.push({ date: c.date, label: c.label, scores: scoresOf(r), photo: r.photo }); }
-    DEMOS.push({ product: d.product, start: d.start, track: d.track, controls: d.controls, weeks: d.weeks, tag: d.tag, checkins: cis }); }
+    DEMOS.push({ product: d.product, start: d.start, track: d.track, controls: d.controls, weeks: d.weeks, tag: d.tag, note: d.note, samples: d.checkins.map(c => c.sample), checkins: cis }); }
   return DEMOS;
 }
 async function renderTrials() {
@@ -270,7 +309,17 @@ async function renderTrials() {
     if (cur?.source === "live") { const all = store.get("sp_trials", []), tr = all.find(x => x.id === id); tr.checkins.push({ date: new Date().toISOString().slice(0, 10), label: `Check-in ${tr.checkins.length}`, scores: scoresOf(cur.result) }); store.set("sp_trials", all); renderTrials(); location.hash = "#trials"; }
   });
   $$("#trialList [data-ics]").forEach(b => b.onclick = () => ics(store.get("sp_trials", []).find(x => x.id === +b.dataset.ics)));
+  $$("#trialList [data-print], #trialList [data-printdemo]").forEach(b => b.onclick = () => { const card = b.closest(".trial"); card.classList.add("print-me"); document.body.classList.add("printing"); window.print(); setTimeout(() => { card.classList.remove("print-me"); document.body.classList.remove("printing"); }, 500); });
   $$("#trialList [data-del]").forEach(b => b.onclick = () => { store.set("sp_trials", store.get("sp_trials", []).filter(x => x.id !== +b.dataset.del)); renderTrials(); });
+}
+
+// ---------- 90-second tour (for judges) ----------
+async function tour() {
+  const say = t => { $("#tourNote").textContent = t; $("#tourNote").classList.remove("hidden"); };
+  say("1/4 · Scanning a sample face (cached real YouCam Skin Analysis)…"); await pickSample("priya"); await sleep(3500);
+  say("2/4 · Ranking 25 real products against her weakest concerns…"); $("#shop").scrollIntoView({ behavior: "smooth" }); await sleep(4000);
+  say("3/4 · Opening the reasoning for the strongest acne match…"); const id = (SHOP?.strongest || []).find(s => /acne/i.test(s.concern))?.id || SHOP?.strongest?.[0]?.id; if (id) { const p = SHOP.products.find(x => x.id === id); $("#pName").value = p.brand + " " + p.name; $("#pIng").value = p.ingredients; } $("#check").scrollIntoView({ behavior: "smooth" }); await runCheck(); await sleep(5000);
+  say("4/4 · Two trials: one says keep it, one says stop."); $("#trials").scrollIntoView({ behavior: "smooth" }); await sleep(6000); $("#tourNote").classList.add("hidden");
 }
 
 // ---------- boot ----------
@@ -288,5 +337,7 @@ async function renderTrials() {
   $("#heroDemo").onclick = () => { location.hash = "#trials"; };
   $("#breakoutLink").onclick = () => { const r = $$('input[name=mode]').find(i => i.value === "breakout"); if (r) r.checked = true; };
   if (store.get("sp_last", null)) loadShop();
+  else { const r = await loadSample("priya"); store.set("sp_last", { date: new Date().toISOString().slice(0, 10), scores: scoresOf(r), overall: r.overall, label: "Sample face: Priya", key: "priya", auto: true }); updateCheckFor(); loadShop(); }
+  $("#tourBtn").onclick = tour;
   updateCheckFor(); renderTrials();
 })();

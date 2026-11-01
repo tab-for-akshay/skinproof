@@ -242,6 +242,25 @@ export default {
         if (d.task_status === "error") return json({ status: "error", error: ERR[d.error] || ("Simulation failed (" + d.error + ").") });
         return json({ status: d.task_status || "running" });
       }
+      if (p === "/api/vto" && req.method === "POST") {
+        // YouCam Makeup VTO: preview a light, sheer-tint finish on the user's own photo (for tinted SPF / BB products).
+        const u = await units(); if (u !== null && u < RESERVE_UNITS + 2) return json({ error: "Try-on is paused: the demo's free units are used up." }, 503);
+        if (limited(ip)) return json({ error: "Too many requests this hour." }, 429);
+        const img = await readImage(req); if (img.err) return json({ error: img.err }, 400);
+        const cover = Math.max(20, Math.min(80, parseInt(url.searchParams.get("cover") || "55", 10)));
+        const fid = await uploadImage("makeup-vto", img.bytes, img.type);
+        const t = await yc("/s2s/v2.0/task/makeup-vto", { method: "POST", body: JSON.stringify({ version: "1.0", src_file_id: fid, effects: [{ category: "skin_smooth", skinSmoothStrength: cover, skinSmoothColorIntensity: Math.round(cover * 0.75) }] }) });
+        if (t.status !== 200) return json({ error: "The try-on service didn't accept that photo. Try a front-facing photo with the whole face in frame." }, 502);
+        unitCache.at = 0;
+        return json({ task_id: t.j.data.task_id });
+      }
+      if ((m = p.match(/^\/api\/vto\/([A-Za-z0-9_\-+=\/]+)$/))) {
+        const t = await yc("/s2s/v2.0/task/makeup-vto/" + encodeURIComponent(m[1]));
+        const d = t.j?.data || {};
+        if (d.task_status === "success") return json({ status: "success", url: d.results?.url || d.results?.[0]?.url });
+        if (d.task_status === "error") return json({ status: "error", error: ERR[d.error] || "Try-on failed. Try another photo." });
+        return json({ status: d.task_status || "running" });
+      }
       if (p === "/api/check" && req.method === "POST") {
         const b = await req.json().catch(() => ({}));
         const list = parseIngredients(b.ingredients);
@@ -254,10 +273,15 @@ export default {
         // Rank the catalogue against this person's measured scores. Pure code, no AI, no YouCam units.
         const b = await req.json().catch(() => ({}));
         const rows = CATALOG.products.map(pr => { const a = assess(b.scores || {}, parseIngredients(pr.ingredients), pr.name, /cleanser/i.test(pr.category));
-          return { id: pr.id, brand: pr.brand, name: pr.name, category: pr.category, source: pr.source, shop: pr.shop, ingredients: pr.ingredients, fit: a.fit, verdict: a.verdict,
+          return { id: pr.id, brand: pr.brand, name: pr.name, category: pr.category, source: pr.source, shop: pr.shop, brand_url: pr.brand_url || null, tinted: !!pr.tinted, ingredients: pr.ingredients, fit: a.fit, verdict: a.verdict,
+            pri: a.priorities.map(x => ({ concern: x.label, points: x.points, active: x.best?.active || null })),
             hits: a.priorities.filter(x => x.best).map(x => ({ concern: x.label, active: x.best.active })), cautions: [...new Set(a.cautions.map(c => c.active + " — " + c.concern.toLowerCase()))] }; });
         rows.sort((x, y) => y.fit - x.fit || x.cautions.length - y.cautions.length);
-        return json({ products: rows, note: CATALOG.note });
+        rows.forEach((r, i) => r.rank = i + 1);
+        // The best all-rounder is not always the strongest product for your #1 concern; surface both.
+        const leave = rows.filter(r => !/cleanser/i.test(r.category));
+        const strongest = (rows[0]?.pri || []).map((pp, i) => { const s = leave.filter(r => r.pri[i]?.points > 0).sort((x, y) => y.pri[i].points - x.pri[i].points || y.fit - x.fit)[0]; return s ? { id: s.id, concern: pp.concern, active: s.pri[i].active } : null; }).filter(Boolean);
+        return json({ products: rows, strongest, note: CATALOG.note });
       }
       if (p === "/api/kb") return json(KB);
       return env.ASSETS.fetch(req);

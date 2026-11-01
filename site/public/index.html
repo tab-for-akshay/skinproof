@@ -17,10 +17,12 @@
   <h1>Is your skincare <em>actually</em> working?</h1>
   <p class="lead">SkinProof measures your skin with YouCam AI Skin Analysis, checks a product's ingredients against <b>your</b> weakest scores before you buy, shows a realistic target with YouCam Skin Simulation, and then tracks the product week by week until it can tell you: <b>keep it, give it time, or stop</b>.</p>
   <div class="cta"><a class="btn primary" href="#scan">Scan my skin</a><button class="btn ghost" id="heroDemo">See it say “stop” (demo trials)</button></div>
+  <p><button class="btn small-btn tourbtn" id="tourBtn">▶ Judges: 90-second guided tour</button></p>
   <p class="small muted" id="liveState">Checking service…</p>
+  <div id="tourNote" class="tour-note hidden"></div>
  </div>
  <div class="hero-card">
-  <div class="moment"><span>1</span><div><b>Before you buy</b><br>23 real products ranked against your scan, with ingredient proof and where to buy.</div></div>
+  <div class="moment"><span>1</span><div><b>Before you buy</b><br>25 real products ranked against your scan, with ingredient proof, where to buy, and a try-on for tinted ones.</div></div>
   <div class="moment"><span>2</span><div><b>After a breakout</b><br>A quick 4-concern <a href="#scan" id="breakoutLink">breakout check</a>: acne, redness, oil, pores.</div></div>
   <div class="moment"><span>3</span><div><b>Is it working?</b><br>Re-scan every 2 weeks. Changes inside the measurement noise don't count.</div></div>
  </div>
@@ -45,9 +47,11 @@
     <div class="ring" id="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="track"/><circle cx="60" cy="60" r="52" class="bar" id="ringBar"/></svg><div class="ring-n"><b id="overall">–</b><small>overall</small></div></div>
     <dl class="facts"><div><dt>Skin age</dt><dd id="skinAge">–</dd></div><div><dt>Skin type</dt><dd id="skinType">–</dd></div><div><dt>T-zone / U-zone</dt><dd id="zones">–</dd></div></dl>
     <div id="prio" class="prio"></div>
-    <div class="row"><a class="btn primary" href="#check" id="toCheck">Check a product for this skin →</a></div>
+    <div id="maskRow"></div>
+    <div class="row"><a class="btn primary" href="#shop" id="toCheck">See products that fit →</a></div>
    </div>
   </div>
+  <div id="breakout" class="box breakout hidden"></div>
   <p class="small muted">Scores are 1–100; higher = healthier-looking. Bars show YouCam's UI score; the ± band is our measured noise for that concern.</p>
   <div id="concerns" class="concerns"></div>
  </div>
@@ -55,8 +59,10 @@
 
 <section id="shop" class="panel">
  <h2>2 · Shop what fits your skin</h2>
- <p class="muted">23 real products with their published ingredient lists, ranked against <b>your</b> measured priorities — in code, in milliseconds, no AI guesswork. Tap one to see the full reasoning.</p>
+ <p class="lead-sm"><b>The moment before you buy:</b> instead of the trending bottle, see which formulas target what <i>your</i> scan says needs work, and which ones are likely to irritate you.</p>
+ <p class="muted small">25 real products with their published ingredient lists, ranked against your measured priorities in code (no AI guesswork). Tap “Why” for the full reasoning.</p>
  <div id="shopFor" class="pill-note">Scan first (or pick a sample face) to rank these for your skin.</div>
+ <div id="shopStrong"></div>
  <div class="filters" id="shopFilters"></div>
  <div id="shopList" class="shop-grid"></div>
  <p class="small muted" id="shopNote"></p>
@@ -90,6 +96,7 @@
    <li><b>AI Skin Simulation</b> to show a realistic, moderate improvement target for the concerns a product actually targets.</li>
    <li><b>JS Camera Kit</b> for guided capture (face position, lighting, angle) — fewer bad photos, steadier scores.</li>
    <li><b>AI Image Generator V2</b> to create the synthetic sample faces, so the demo uses no real person's face.</li>
+   <li><b>Makeup VTO</b> (skin-smoothing tint) to try a tinted SPF / BB finish on your own photo, or to cover a breakout today.</li>
    <li><b>Unit System API</b> to protect the demo budget (live scans pause before units run out; the remaining units are shown at the top).</li></ul></div>
   <div><h3>Agent workflow</h3><ol>
    <li>Measure (Skin Analysis) → pick your 3 weakest concerns.</li>
@@ -99,6 +106,7 @@
    <li>Visualise the target (Skin Simulation), then track the trial and give a verdict that respects measurement noise.</li></ol></div>
   <div><h3>We measured the noise</h3><p class="small">Three faces, each re-analysed after +10% brightness with JPEG recompression and after a 3° tilt with a shifted crop (6 re-captures per concern). Largest score change:</p><div id="noiseTable" class="small"></div><p class="small muted">SkinProof uses a band of max(3, largest + 1) points. Real life is noisier (other light, distance, phone), so this band is a floor: SkinProof also shows a capture checklist, requires two check-ins in a row, and labels each verdict's confidence.</p></div>
  </div>
+ <p class="small"><b>For retailers:</b> the same fit score can sit on any product page — <a href="/retailer.html">see the widget on a sample product page</a>.</p>
  <p class="small muted">Not medical advice. SkinProof is a consumer measurement and shopping aid; for pain, cysts or a spreading rash, see a dermatologist.</p>
 </section>
 </main>

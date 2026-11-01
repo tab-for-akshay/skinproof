@@ -62,3 +62,14 @@ tr.control td,tr.safety td{background:#faf8f5}.vbox{max-width:420px}
 
 .fit{grid-template-columns:210px 1fr}
 @media (max-width:820px){.fit{grid-template-columns:1fr}}
+
+.lead-sm{font-size:1.02rem;margin:.2rem 0}details.inline{display:inline}details.inline summary{display:inline;cursor:pointer;color:var(--teal2)}
+@media print{body.printing header,body.printing main>section:not(#trials),body.printing footer,body.printing #trials>h2,body.printing #trials>p,body.printing .trial:not(.print-me),body.printing .row{display:none!important}body.printing .panel{border:0;padding:0}body.printing .trial.print-me::after{content:"SkinProof trial summary — skinproof.sites.tab.bot · Built by Tab, an AI assistant, for team lead Akshay Wagh. Not a diagnosis.";display:block;margin-top:1rem;font-size:.8rem;color:#555}}
+@media (max-width:480px){.legend{font-size:.78rem;gap:.5rem}.trial table td,.trial table th{font-size:.78rem;padding:.25rem}.timeline{font-size:.8rem}}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+.breakout{background:#fffaf5;border-color:#f3d6c2;margin-top:1rem}
+.callout{background:#eef7f7;border:1px solid #cfe7e8;border-radius:12px;padding:.7rem .9rem;margin:.5rem 0;font-size:.92rem}
+.linkbtn{background:none;border:0;color:var(--teal2);text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+.tourbtn{border-color:var(--peach);background:#fff7f1}.tour-note{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:.6rem 1rem;border-radius:999px;z-index:50;font-size:.92rem;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:92vw;text-align:center}
+.tryout .ba{margin-top:.5rem}

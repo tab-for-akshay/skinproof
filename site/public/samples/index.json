@@ -4,7 +4,7 @@
    "key": "priya",
    "name": "Priya",
    "age": 24,
-   "blurb": "Breakouts and oily T-zone"
+   "blurb": "Breakouts, oily T-zone, dehydrated"
   },
   {
    "key": "arjun",
@@ -58,7 +58,8 @@
      "sample": "priya_w6",
      "label": "Week 6"
     }
-   ]
+   ],
+   "note": "Check-in photos were made with YouCam Skin Simulation to demonstrate the mechanism; the size of these changes is not an expected result for any product."
   },
   {
    "tag": "synthetic face \u00b7 redness added by filter",
@@ -89,7 +90,8 @@
      "sample": "maya_w4",
      "label": "Week 4"
     }
-   ]
+   ],
+   "note": "Check-in photos had redness added with an image filter to show how SkinProof reacts to irritation; every score is a real YouCam Skin Analysis measurement."
   }
  ]
 }
