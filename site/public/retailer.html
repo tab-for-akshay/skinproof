@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sample store product page — SkinProof widget demo</title><link rel="icon" href="/icon.svg">
+<style>body{margin:0;font:16px/1.5 system-ui,sans-serif;color:#1d1d1f;background:#fff}.bar{background:#111;color:#fff;padding:.6rem 1.2rem;font-weight:700;letter-spacing:.08em}.bar small{font-weight:400;opacity:.7;letter-spacing:0;margin-left:.6rem}
+main{max-width:1000px;margin:1.5rem auto;padding:0 1rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem}.pimg{background:#f4f1ec;border-radius:12px;aspect-ratio:1;display:grid;place-items:center;font-size:5rem}
+h1{font-size:1.6rem;margin:.2rem 0}.price{font-size:1.3rem;margin:.4rem 0}.btn{background:#111;color:#fff;border:0;border-radius:999px;padding:.8rem 1.4rem;font-weight:700;margin:.6rem 0}
+.ing{font-size:.82rem;color:#555}.note{max-width:1000px;margin:1rem auto;padding:0 1rem;font-size:.85rem;color:#666}@media(max-width:760px){main{grid-template-columns:1fr}}</style></head><body>
+<div class="bar">EXAMPLE BEAUTY STORE<small>a mock product page showing the SkinProof widget</small></div>
+<main><div class="pimg">🧴</div><div><div style="color:#666">Minimalist</div><h1>Salicylic Acid 2% Face Serum</h1><div class="price">Price shown by the store</div>
+<div id="skinproof-fit" data-product="minimalist-salicylic-acid-02"></div>
+<button class="btn">Add to bag</button><p class="ing" id="ing"></p></div></main>
+<p class="note">This is a mock store page. The block under the title is the SkinProof widget: one script tag plus a product ID. It reads the shopper's last SkinProof scan from their own browser (or a sample face) and calls the same <code>/api/shop</code> scoring as the main app. Built by Tab, an AI assistant, for team lead Akshay Wagh.</p>
+<script src="/embed.js"></script></body></html>

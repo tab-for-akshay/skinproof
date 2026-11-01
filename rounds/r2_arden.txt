@@ -1,0 +1,40 @@
+I'll actually look at the site and repo before judging.Judged against the live site and repo (README, SUBMISSION_DRAFT.md). Verdict first: this is a genuinely complete product and the strongest thing about it is that the trials engine actually says "stop" — but three things still cap it: no video, no AR try-on (the theme literally says eCommerce VTO), and all demo evidence is synthetic.
+
+## Top 8 improvements, by score impact
+
+**1. Record and link the demo video — every criterion.**
+The Devpost draft still has `Video: _(YouTube link)_` as a placeholder. Most judges watch the video first; if none exists at submission, Technological Implementation, Design and Impact all get judged from text. Change: 90–120 second video: scan Priya → Shop what fits → Why NN → the Maya "Pause it" verdict. Why: it's the single highest-leverage artifact missing, and it lets the demo show the moment-solved story the Impact criterion demands.
+
+**2. Add AR try-on (YouCam VTO) on the tinted products — Technological Implementation, Quality of Idea.**
+The hackathon is "Skin AI & eCommerce VTO" and the entry currently ships zero VTO — it's only in the roadmap. Change: wire AR try-on to the 3–5 tinted items in the catalogue (tinted SPF, concealer, tinted moisturizer) with a "See it on your face" button using the scan photo. Why: right now a judge can say "they integrated Skin AI but skipped half the theme"; this closes that hole with the API family Perfect Corp is explicitly showcasing, and it's a natural fit — "this BHA won't work with your skin" plus "here's the tinted SPF that will, on your face."
+
+**3. Wire the breakout moment into commerce — Potential Impact, Design.**
+The brief's "right after a bad breakout" moment is currently just a 4-concern check with no follow-through; the Shop list doesn't react to it. Change: after a breakout check, show a "right now" panel — actives to pause (retinoids, acids on irritated skin) and gentle products from the catalogue that fit — even if it's just a filter on the existing ranking. Why: it turns the second brief moment from a measurement gimmick into the full measure→recommend loop, and it's ~one conditional filter on code you already have.
+
+**4. Remove the "Scan first" dead wall on Shop what fits — Design, Impact.**
+Section 2 currently says "Scan first (or pick a sample face) to rank these for your skin." A judge who scrolls to it without scanning sees an empty state, not a product experience. Change: pre-rank against Priya by default with a small banner "ranking shown for sample face Priya — scan to get yours." Why: judges rarely scan first; the core retail value must be visible in zero clicks. Same fix for section 3.
+
+**5. Do one real-face mini trial — Potential Impact.**
+Every trial datapoint is synthetic, on purpose, and the README says so — which is honest but leaves the Impact criterion's "demo shows it solved" resting on generated images. Change: team lead or a teammate uploads their own selfie, starts a real 2-week trial (even one check-in at week 2), and you show it as "one real user, in progress" beside the synthetic demos. Why: one real scan measured with the real API is worth more credibility than six synthetic check-ins, and it validates your noise-band claim on real capture.
+
+**6. Surface the Skin Simulation before/after images in the product check and trial timeline — Design, Technological Implementation.**
+Skin Simulation is a headline API but on the site it reads as a description ("shows a realistic target") rather than a visible artifact. Change: in both demo trials and the product check, show the current photo and the simulated target side by side, labeled. Why: judges should *see* the second YouCam API's output without reading the README; right now its integration is easy to under-credit.
+
+**7. Show the retailer widget as a mock, not a roadmap line — Potential Impact.**
+"Fit score on any product page" is the entire retail business case, but it exists only as a sentence. Change: build a static mock product page (one HTML file) with the SkinProof fit-score card embedded for Priya, linked from the Impact section. Why: the B2B value claim becomes demonstrable in one click, and the two-week re-engagement loop ("brings the shopper back") gets a visual home.
+
+**8. Publish per-concern noise bands and per-concern verdict thresholds in the UI — Technological Implementation, Quality of Idea.**
+The band is currently one number per face from the worst observed change; a redness band set by a brightness perturbation over-widens the acne band and vice versa. Change: compute and display the band per concern (you have the 6 re-captures per concern already in `noise_test.json`), and show each trial concern's own band on its row. Why: it sharpens your most original idea (noise-respecting verdicts) and preempts the sharpest judge question about false "keep it" verdicts.
+
+## Scores
+
+| Criterion | Score | Note |
+|---|---|---|
+| Technological Implementation | **9** | Five YouCam APIs, real deterministic code, honest measurement study; loses a point for no VTO |
+| Design | **7** | Coherent flow and transparent numbers, but dead walls in sections 2–3 and simulation imagery not shown |
+| Potential Impact | **6** | Plausible retail case, well argued, but all evidence synthetic and the B2B integration is only described |
+| Quality of Idea | **8** | The noise band + controls + "Pause" verdict is genuinely non-obvious and honest; breakout moment underdeveloped |
+
+**Total ~30/40** — strong prize contender; currently an honorable-mention-to-second-tier-prize profile because the evidence is synthetic and the theme's VTO half is missing.
+
+**Single thing most likely to win it a prize:** the demo video with the Maya "Pause it" moment as the climax. It's the only artifact that shows all four criteria at once, it's currently a placeholder, and it converts your best idea (an AI that tells you to stop) from a README claim into 20 seconds judges remember. If the video is already being made, then it's #2: get AR try-on live on even one tinted product.

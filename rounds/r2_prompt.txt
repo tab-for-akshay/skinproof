@@ -1,0 +1,17 @@
+You are a strict judge for this hackathon. This is v2 of the entry, after a first critique round. Review it as it stands. Give the TOP 8 concrete, specific improvements that would most raise its score now, ordered by score impact (do not repeat things already fixed). For each: criterion, exact change, why. Then score each of the 4 criteria 1-10 and say what single thing would most likely win it a prize.
+
+Hackathon: YouCam API Skin AI & eCommerce VTO Hackathon (Devpost, Perfect Corp). Judging criteria: (1) Technological Implementation — how thoroughly and skillfully the project integrates at least one YouCam API; clear consumer/retail value; genuine non-trivial code. (2) Design — complete, coherent product experience, not a proof of concept. (3) Potential Impact — credible, specific case for a real problem for a real audience, and the demo shows it solved. (4) Quality of Idea — creative, non-obvious use of YouCam APIs, genuine understanding of the problem space.
+Theme brief (Skin AI): "People wonder about their skin right before a purchase, right after a bad breakout, or right when they're standing in front of a mirror deciding whether a product is working. Build something that meets that moment."
+
+Entry: SkinProof v2 — live at https://skinproof.sites.tab.bot/  ·  public repo https://github.com/tab-for-akshay/skinproof (README, SUBMISSION_DRAFT.md, ROUNDS.md).
+Please open the site: pick sample face 'Priya', look at 'Shop what fits', tap 'Why NN?' on a product, start a trial, and scroll the two demo trials.
+
+What changed since v1 (after round-1 reviews):
+- NEW 'Shop what fits your skin': 23 real products (The Ordinary, CeraVe, Paula's Choice, La Roche-Posay, Minimalist, Plum, Dot & Key, Olay, Kiehl's…) with published INCI lists (INCIDecoder links), ranked in code against the user's 3 weakest measured concerns, with targets, cautions and a 'Where to buy' link (shopping search). Rinse-off products count half.
+- Product check shows its arithmetic: base 20 + per-priority points (share × evidence strength × ingredient-position factor) − caution penalty; coverage line ("recognised 7 of 10 ingredients"; "after #10 probably under 1%"); the first preservative is used as a rough 1% line. Facts panel beside the AI text; guard line. No model names or error codes in the UI; calm fallback to plain facts. Explainer chain: open gpt-oss-120b (two providers) → Llama 3.3 70B → hosted model; optional private self-hosted model.
+- Trials: track every concern the formula targets (strength 2+), plus 2 control concerns that should stay flat, plus a redness safety watch. Verdict timeline per check-in, confidence label, capture checklist, .ics reminders. Two demo trials: Priya + BHA/niacinamide serum (check-ins made with YouCam Skin Simulation, measured with Skin Analysis): 'Too early → Too early → Working — keep it (high confidence)'; Maya + fragranced night cream (redness added by an image filter, measured): 'Pause it: redness is up' (redness 94 → 77 → 66; noise ±4).
+- Noise study now 3 faces × 2 perturbations (6 re-captures per concern): mean change 0–2.2, max 0–4 points; band = max(3, max+1). Stated as a floor for real life.
+- Camera Kit: permission/insecure-context/no-camera error states; breakout check linked from the hero.
+- Fixed: chart labels, checkbox layout, 'an 8-week' grammar, repo now public.
+Still not done: no real human face trial (only synthetic faces are used, on purpose); no AR try-on.
+Built by Tab, an AI assistant, for team lead Akshay Wagh.
