@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SkinProof — is your skincare actually working?</title>
+<meta name="description" content="SkinProof uses YouCam AI Skin Analysis and Skin Simulation to check a product against your measured skin before you buy, and to prove whether it works after.">
+<meta property="og:title" content="SkinProof — is your skincare actually working?">
+<meta property="og:description" content="Measure before you buy. Track while you use. Know when to stop. Built on YouCam AI Skin Analysis + Skin Simulation.">
+<link rel="icon" href="/icon.svg">
+<link rel="stylesheet" href="/styles.css">
+</head><body>
+<header class="top"><a class="brand" href="#home"><img src="/icon.svg" alt=""> SkinProof</a>
+<nav><a href="#scan">Scan</a><a href="#shop">Shop</a><a href="#check">Check</a><a href="#trials">Trials</a><a href="#how">How</a></nav></header>
+<main>
+<section id="home" class="hero">
+ <div class="hero-text">
+  <p class="eyebrow">Skin AI × eCommerce</p>
+  <h1>Is your skincare <em>actually</em> working?</h1>
+  <p class="lead">SkinProof measures your skin with YouCam AI Skin Analysis, checks a product's ingredients against <b>your</b> weakest scores before you buy, shows a realistic target with YouCam Skin Simulation, and then tracks the product week by week until it can tell you: <b>keep it, give it time, or stop</b>.</p>
+  <div class="cta"><a class="btn primary" href="#scan">Scan my skin</a><button class="btn ghost" id="heroDemo">See it say “stop” (demo trials)</button></div>
+  <p class="small muted" id="liveState">Checking service…</p>
+ </div>
+ <div class="hero-card">
+  <div class="moment"><span>1</span><div><b>Before you buy</b><br>23 real products ranked against your scan, with ingredient proof and where to buy.</div></div>
+  <div class="moment"><span>2</span><div><b>After a breakout</b><br>A quick 4-concern <a href="#scan" id="breakoutLink">breakout check</a>: acne, redness, oil, pores.</div></div>
+  <div class="moment"><span>3</span><div><b>Is it working?</b><br>Re-scan every 2 weeks. Changes inside the measurement noise don't count.</div></div>
+ </div>
+</section>
+
+<section id="scan" class="panel">
+ <h2>1 · Scan</h2>
+ <p class="muted">Front-facing selfie, hair off the forehead, even daylight, no makeup. Leave a little space around your face.</p>
+ <div class="mode"><label><input type="radio" name="mode" value="full" checked> Full scan <small>(15 concerns + skin type)</small></label><label><input type="radio" name="mode" value="breakout"> Breakout check <small>(acne, redness, oil, pores)</small></label></div>
+ <div class="pickers">
+  <button class="btn" id="camBtn">📷 Guided camera (YouCam Camera Kit)</button>
+  <label class="btn"><input type="file" id="file" accept="image/jpeg,image/png" hidden>⬆︎ Upload a photo</label>
+ </div>
+ <label class="consent"><input type="checkbox" id="consent"> I agree my photo is sent to the YouCam API for analysis. SkinProof keeps no photos on its servers; your scores stay in this browser.</label>
+ <div id="YMK-module"></div>
+ <div class="samples"><p class="muted small">No selfie handy? Use a sample face (synthetic people, generated with YouCam AI Image Generator):</p><div id="sampleRow" class="sample-row"></div></div>
+ <div id="scanStatus" class="status"></div>
+ <div id="result" class="result hidden">
+  <div class="res-head">
+   <div class="photo-wrap"><img id="resPhoto" alt="Your photo with the selected concern highlighted"><div class="photo-cap" id="photoCap">Tap a concern to see where it is</div></div>
+   <div class="summary">
+    <div class="ring" id="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="track"/><circle cx="60" cy="60" r="52" class="bar" id="ringBar"/></svg><div class="ring-n"><b id="overall">–</b><small>overall</small></div></div>
+    <dl class="facts"><div><dt>Skin age</dt><dd id="skinAge">–</dd></div><div><dt>Skin type</dt><dd id="skinType">–</dd></div><div><dt>T-zone / U-zone</dt><dd id="zones">–</dd></div></dl>
+    <div id="prio" class="prio"></div>
+    <div class="row"><a class="btn primary" href="#check" id="toCheck">Check a product for this skin →</a></div>
+   </div>
+  </div>
+  <p class="small muted">Scores are 1–100; higher = healthier-looking. Bars show YouCam's UI score; the ± band is our measured noise for that concern.</p>
+  <div id="concerns" class="concerns"></div>
+ </div>
+</section>
+
+<section id="shop" class="panel">
+ <h2>2 · Shop what fits your skin</h2>
+ <p class="muted">23 real products with their published ingredient lists, ranked against <b>your</b> measured priorities — in code, in milliseconds, no AI guesswork. Tap one to see the full reasoning.</p>
+ <div id="shopFor" class="pill-note">Scan first (or pick a sample face) to rank these for your skin.</div>
+ <div class="filters" id="shopFilters"></div>
+ <div id="shopList" class="shop-grid"></div>
+ <p class="small muted" id="shopNote"></p>
+</section>
+
+<section id="check" class="panel">
+ <h2>3 · Check any product</h2>
+ <p class="muted">Not in the list? Paste any ingredient list (INCI) straight from a box or shop page. SkinProof matches it against an open, sourced list of 35 skincare actives, uses ingredient order as a rough strength guide, and scores it against <b>your</b> measured priorities.</p>
+ <div id="checkFor" class="pill-note">No scan yet. Scan first, or pick a sample face above.</div>
+ <div class="examples small">Try: <button data-ex="0">BHA + niacinamide serum</button><button data-ex="1">Vitamin C serum</button><button data-ex="2">Fragranced rich night cream</button><button data-ex="3">Retinol + peptide cream</button></div>
+ <input id="pName" placeholder="Product name (optional)">
+ <textarea id="pIng" rows="4" placeholder="Aqua, Niacinamide, Glycerin, Salicylic Acid, …"></textarea>
+ <label class="small"><input type="checkbox" id="private"> Private mode: write the explanation on our self-hosted open model (slower; falls back automatically)</label>
+ <div class="row"><button class="btn primary" id="checkBtn">Check fit</button></div>
+ <div id="checkStatus" class="status"></div>
+ <div id="checkOut" class="hidden"></div>
+</section>
+
+<section id="trials" class="panel">
+ <h2>4 · Is it working? Trials</h2>
+ <p class="muted">A trial tracks the concerns a product targets. Re-scan every two weeks in the same light. SkinProof only calls a change real if it is bigger than the measurement noise (shown as a band) and holds for two check-ins. Untargeted <b>control</b> concerns should stay flat, and redness is always watched for irritation.</p>
+ <p class="small muted">The two demo trials use synthetic faces: Priya's check-ins were made with YouCam Skin Simulation, Maya's with an image filter that adds redness. Every score shown is a real YouCam Skin Analysis measurement of those images. Your own trials stay on this device.</p>
+ <div id="trialList"></div>
+</section>
+
+<section id="how" class="panel how">
+ <h2>How it works</h2>
+ <div class="grid3">
+  <div><h3>YouCam APIs used</h3><ul>
+   <li><b>AI Skin Analysis</b> (SD, 15 concerns + skin type, with mask overlays) for every scan and check-in.</li>
+   <li><b>AI Skin Simulation</b> to show a realistic, moderate improvement target for the concerns a product actually targets.</li>
+   <li><b>JS Camera Kit</b> for guided capture (face position, lighting, angle) — fewer bad photos, steadier scores.</li>
+   <li><b>AI Image Generator V2</b> to create the synthetic sample faces, so the demo uses no real person's face.</li>
+   <li><b>Unit System API</b> to protect the demo budget (live scans pause before units run out; the remaining units are shown at the top).</li></ul></div>
+  <div><h3>Agent workflow</h3><ol>
+   <li>Measure (Skin Analysis) → pick your 3 weakest concerns.</li>
+   <li>Ground: parse the INCI list and match a sourced knowledge base (no free-text ingredient claims).</li>
+   <li>Score fit (benefit vs. cautions for your skin) in code.</li>
+   <li>Explain: an open AI model writes the plain-language verdict from those facts only; a code guard discards any draft that names an ingredient the product doesn't contain, and the facts are always shown beside it.</li>
+   <li>Visualise the target (Skin Simulation), then track the trial and give a verdict that respects measurement noise.</li></ol></div>
+  <div><h3>We measured the noise</h3><p class="small">Three faces, each re-analysed after +10% brightness with JPEG recompression and after a 3° tilt with a shifted crop (6 re-captures per concern). Largest score change:</p><div id="noiseTable" class="small"></div><p class="small muted">SkinProof uses a band of max(3, largest + 1) points. Real life is noisier (other light, distance, phone), so this band is a floor: SkinProof also shows a capture checklist, requires two check-ins in a row, and labels each verdict's confidence.</p></div>
+ </div>
+ <p class="small muted">Not medical advice. SkinProof is a consumer measurement and shopping aid; for pain, cysts or a spreading rash, see a dermatologist.</p>
+</section>
+</main>
+<footer><p><b>Built by Tab, an AI assistant, for team lead Akshay Wagh.</b> Entry for the YouCam API Skin AI &amp; eCommerce VTO Hackathon. <a href="https://github.com/tab-for-akshay/skinproof">Source (MIT)</a> · <a href="/kb.json">Ingredient knowledge base</a></p></footer>
+<script>window.YMKAsyncInit=function(){window.__ymkReady=true;};</script>
+<script src="/app.js"></script>
+</body></html>

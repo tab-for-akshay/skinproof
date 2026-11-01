@@ -1,0 +1,36 @@
+I'll review the live site and the entry as described, then judge it.I opened the live site, clicked through the flow, probed the API endpoints (health is live: 902 units left), read `app.js` and `kb.json`, and tried the GitHub link. Verdict and top 8 below, ordered by score impact.
+
+## The 8 improvements
+
+**1. Your repo link 404s. "Repo will be public" means it isn't, at judging time.** (Technological Implementation)
+`https://github.com/tab-for-akshay/skinproof` returns 404 right now. Judges scoring "genuine non-trivial code" with no repo will default to distrusting every claim — the server-side key handling, the code guard, the noise math are all unverifiable. Push it before you submit; it's a 10-minute fix protecting ~2 points on the heaviest-weighted criterion.
+
+**2. There is no eCommerce or VTO in your entry, and the hackathon is "Skin AI & eCommerce VTO."** (Technological Implementation, Quality of Idea)
+Nothing in the flow touches a store: no product catalog, no SKU, no price, no buy CTA, no try-on. "Paste an INCI list" is a lab tool, not a retail moment — and the theme brief is explicitly about the moment *before a purchase*. Wire the product check into an actual shopping flow: a small catalog of 10–20 real products (name, price, image, INCI), the fit score rendered on the product card next to "Add to bag," and a "products that fit your 3 weakest concerns" sorter after a scan. Even one real retailer page (e.g. an Amazon or brand PDP URL parsed for INCI) converts this from "ingredient checker" to "decision layer for a store." This is the single biggest conceptual gap.
+
+**3. Your entire demo is synthetic, including the trial — which is self-fulfilling.** (Potential Impact)
+Sample faces are generated, and the demo trial's "improvements" were created with Skin Simulation and then measured by Skin Analysis. A sharp judge will say: you simulated the improvement and then congratulated yourself for measuring it. That's circular as evidence. Fix: run one real 4-week human trial (the team lead's own face is fine) — 3 real check-in photos, real scores, real verdict — and show it alongside the synthetic demo. Even n=1 with honest "pilot, n=1" framing beats a loop that can't falsify itself. Also validate the synthetic pipeline explicitly: show that Skin Analysis does *not* detect change in control concerns (you mention wrinkles stayed 79 — surface that as a control, prominently, in the trial UI).
+
+**4. Your noise band is too thin for real-world re-capture, and the study is one synthetic face.** (Potential Impact, Quality of Idea)
+The noise idea is the most original thing here — but you measured +10% brightness/JPEG and 3° tilt on *one* face. Two weeks later, a real user has different lighting, distance, expression, and camera. That variance is several times larger than your band, which means false "Working"/"Not working" verdicts — the exact failure your product exists to prevent. Run the noise protocol across all sample faces plus at least 3 real re-captures of the same person across a day, publish per-concern variance, and either widen the band or report a confidence level per verdict ("Working, moderate confidence"). Showing the *distribution*, not just the max, would also upgrade the How-it-works panel from anecdote to method.
+
+**5. The LLM explanation is unverifiable in the UI.** (Technological Implementation)
+You claim "facts only" and a guard that blocks hallucinated ingredient names, but the judge sees only prose. Render the grounded facts (matched actives, doses/evidence tier, cautions fired) in a collapsible panel directly beside the LLM text, and add a demo toggle "show guard rejections" that logs any ingredient name the LLM attempted that isn't in the parsed INCI. Right now the most impressive engineering claim in the entry is invisible.
+
+**6. 35 actives is a thin, opaque knowledge base with no coverage signal.** (Design, Technological Implementation)
+When a user pastes a typical 25-ingredient INCI, most ingredients won't match — and the UI doesn't say what happened to them ("17 of 24 ingredients not covered by our knowledge base" is a trust-building, honest line; silence looks like failure). Also: 35 actives misses common categories (chemical UV filters, preservatives, several humectants). Publish per-ingredient match rates in the How-it-works panel and expand to ~80 entries; each is a one-line JSON record since you already have the sourced schema.
+
+**7. Trials have no retention loop, so real users will never reach check-in #2.** (Potential Impact, Design)
+The entire value of a trial lands 2 and 4 weeks later, and nothing pulls the user back: no reminder, no email/ICS export, no notification. Add "remind me" (calendar file or email) at trial start and a re-scan checklist (same lighting, same distance, front-facing) shown at check-in time. Also make the hero demo-trial button open a compressed timeline scrubber (week 0→2→4 with photos and verdicts animating) — it exists but the demo experience should be the first thing a judge sees, not a static list.
+
+**8. No shareable output.** (Design, Potential Impact)
+The verdict ("Keep it / Too early / Stop") is the product's punchline and it dies in localStorage. Generate a shareable verdict card (image with the concern scores, noise band, verdict, and product name) — it's the natural word-of-mouth artifact for a consumer skin product and doubles as evidence in your demo.
+
+## Scores (as it stands, v1)
+
+- **Technological Implementation: 7/10.** Real, multi-API YouCam integration (Skin Analysis SD, Simulation, Camera Kit, Image Generator, Unit System), server-side keys, live service with graceful degradation, unit guard, genuine non-trivial code. Loses points for the 404 repo and the invisible LLM guard.
+- **Design: 7/10.** Coherent, complete-feeling product with good copy, honest demo-mode messaging, and a clear three-moment framing. Held back by the paste-INCI dead end, thin KB coverage UX, and no retention/share loops.
+- **Potential Impact: 6/10.** The problem is real and the audience specific, but the demo can't prove it solved anything — the trial evidence is self-generated, and the noise band wouldn't survive real-world re-capture.
+- **Quality of Idea: 8/10.** Noise-aware trial verdicts grounded in a measured noise study is a genuinely non-obvious, defensible idea, and the grounded-LLM-with-code-guard pattern shows real understanding of the failure mode. The miss is ignoring the VTO/eCommerce half of the brief.
+
+Fixing #1–#3 alone moves this from a ~7-average to a podium contender; #3 is the one that wins Impact.

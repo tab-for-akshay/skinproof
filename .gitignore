@@ -1,0 +1,4 @@
+dist/
+deploy_*/
+node_modules/
+*.env

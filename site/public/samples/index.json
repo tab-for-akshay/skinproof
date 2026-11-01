@@ -1,0 +1,95 @@
+{
+ "faces": [
+  {
+   "key": "priya",
+   "name": "Priya",
+   "age": 24,
+   "blurb": "Breakouts and oily T-zone"
+  },
+  {
+   "key": "arjun",
+   "name": "Arjun",
+   "age": 33,
+   "blurb": "Tired eyes, uneven texture"
+  },
+  {
+   "key": "maya",
+   "name": "Maya",
+   "age": 47,
+   "blurb": "Fine lines and sun spots"
+  }
+ ],
+ "demo_trials": [
+  {
+   "tag": "synthetic face \u00b7 Skin Simulation check-ins",
+   "product": "Clear-Pore BHA + Niacinamide Serum (sample product)",
+   "ingredients": "Aqua, Niacinamide, Glycerin, Salicylic Acid, Zinc PCA, Panthenol, Sodium Hyaluronate, Allantoin, Xanthan Gum, Phenoxyethanol",
+   "start": "2026-09-20",
+   "track": [
+    "moisture",
+    "acne",
+    "oiliness",
+    "pore",
+    "age_spot"
+   ],
+   "controls": [
+    "wrinkle",
+    "eye_bag"
+   ],
+   "weeks": 8,
+   "checkins": [
+    {
+     "date": "2026-09-20",
+     "sample": "priya",
+     "label": "Baseline"
+    },
+    {
+     "date": "2026-10-04",
+     "sample": "priya_w2",
+     "label": "Week 2"
+    },
+    {
+     "date": "2026-10-18",
+     "sample": "priya_w4",
+     "label": "Week 4"
+    },
+    {
+     "date": "2026-11-01",
+     "sample": "priya_w6",
+     "label": "Week 6"
+    }
+   ]
+  },
+  {
+   "tag": "synthetic face \u00b7 redness added by filter",
+   "product": "Rose Velvet Rich Night Cream (sample product)",
+   "ingredients": "Aqua, Cetearyl Alcohol, Shea Butter, Parfum, Alcohol Denat., Rosa Damascena Flower Oil, Lavandula Angustifolia Oil, Limonene, Linalool, Glycerin, Dimethicone",
+   "start": "2026-10-04",
+   "track": [
+    "moisture"
+   ],
+   "controls": [
+    "wrinkle",
+    "eye_bag"
+   ],
+   "weeks": 4,
+   "checkins": [
+    {
+     "date": "2026-10-04",
+     "sample": "maya",
+     "label": "Baseline"
+    },
+    {
+     "date": "2026-10-18",
+     "sample": "maya_w2",
+     "label": "Week 2"
+    },
+    {
+     "date": "2026-11-01",
+     "sample": "maya_w4",
+     "label": "Week 4"
+    }
+   ]
+  }
+ ]
+}
